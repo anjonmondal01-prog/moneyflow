@@ -1,6 +1,7 @@
 from pathlib import Path
 import os
 from urllib.parse import urlparse
+
 BASE_DIR=Path(__file__).resolve().parent.parent
 SECRET_KEY=os.getenv('DJANGO_SECRET_KEY','dev-only-change-me')
 DEBUG=os.getenv('DJANGO_DEBUG','0')=='1'
@@ -24,11 +25,14 @@ USE_TZ=True
 STATIC_URL='static/'
 DEFAULT_AUTO_FIELD='django.db.models.BigAutoField'
 AUTH_USER_MODEL='core.User'
-CORS_ALLOWED_ORIGINS=[x.strip() for x in os.getenv('CORS_ALLOWED_ORIGINS','http://localhost:5173').split(',') if x.strip()]
+
+PRODUCTION_FRONTEND_ORIGIN='https://moneyflow-ipii.onrender.com'
+CORS_ALLOWED_ORIGINS=list(dict.fromkeys([PRODUCTION_FRONTEND_ORIGIN]+[x.strip() for x in os.getenv('CORS_ALLOWED_ORIGINS','http://localhost:5173').split(',') if x.strip()]))
 CORS_ALLOW_CREDENTIALS=True
-CSRF_TRUSTED_ORIGINS=[x.strip() for x in os.getenv('CSRF_TRUSTED_ORIGINS','http://localhost:5173').split(',') if x.strip()]
+CSRF_TRUSTED_ORIGINS=list(dict.fromkeys([PRODUCTION_FRONTEND_ORIGIN]+[x.strip() for x in os.getenv('CSRF_TRUSTED_ORIGINS','http://localhost:5173').split(',') if x.strip()]))
 SESSION_COOKIE_SECURE=not DEBUG
 CSRF_COOKIE_SECURE=not DEBUG
 SESSION_COOKIE_SAMESITE='Lax'
 CSRF_COOKIE_SAMESITE='Lax'
+
 REST_FRAMEWORK={'DEFAULT_AUTHENTICATION_CLASSES':['rest_framework.authentication.SessionAuthentication'],'DEFAULT_PERMISSION_CLASSES':['rest_framework.permissions.IsAuthenticated']}
