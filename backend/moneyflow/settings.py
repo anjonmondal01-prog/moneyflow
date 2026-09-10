@@ -36,5 +36,6 @@ SESSION_COOKIE_SAMESITE='None' if not DEBUG else 'Lax'
 CSRF_COOKIE_SAMESITE='None' if not DEBUG else 'Lax'
 SESSION_COOKIE_HTTPONLY=True
 CSRF_COOKIE_HTTPONLY=False
+CSRF_COOKIE_NAME='moneyflow_csrftoken'
 
 REST_FRAMEWORK={'DEFAULT_AUTHENTICATION_CLASSES':['rest_framework.authentication.SessionAuthentication'],'DEFAULT_PERMISSION_CLASSES':['rest_framework.permissions.IsAuthenticated']}
