@@ -21,11 +21,12 @@ class PersonSerializer(serializers.ModelSerializer):
 
 class OwnedRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        qs=super().get_queryset()
-        request=self.context.get('request')
+        qs=super().get_queryset(); request=self.context.get('request')
         return qs.filter(user=request.user) if request and request.user.is_authenticated else qs.none()
 
 class TransactionSerializer(serializers.ModelSerializer):
+    # Currency is server-controlled from the authenticated user's profile.
+    currency=serializers.CharField(read_only=True)
     person=OwnedRelatedField(queryset=Person.objects.all(),allow_null=True,required=False)
     account=OwnedRelatedField(queryset=Account.objects.all(),allow_null=True,required=False)
     destination_account=OwnedRelatedField(queryset=Account.objects.all(),allow_null=True,required=False)
@@ -36,14 +37,20 @@ class TransactionSerializer(serializers.ModelSerializer):
         return data
 
 class BudgetSerializer(serializers.ModelSerializer):
+    # The UI intentionally has one monthly target and does not ask for a separate name.
+    name=serializers.CharField(required=False,default='Monthly Spending Target')
+    period=serializers.CharField(required=False,default='monthly')
     used=serializers.SerializerMethodField(); remaining=serializers.SerializerMethodField(); percentage=serializers.SerializerMethodField()
     def _used(self,o):
         from django.db.models import Sum
-        q=Transaction.objects.filter(user=o.user,status='active',type='expense',date__range=(o.start_date,o.end_date)); q=q.filter(category=o.category) if o.category else q; return q.aggregate(v=Sum('amount'))['v'] or 0
+        q=Transaction.objects.filter(user=o.user,status='active',type='expense',date__range=(o.start_date,o.end_date))
+        q=q.filter(category=o.category) if o.category else q
+        return q.aggregate(v=Sum('amount'))['v'] or 0
     def get_used(self,o): return self._used(o)
     def get_remaining(self,o): return o.amount-self._used(o)
     def get_percentage(self,o): return round(float(self._used(o)/o.amount*100),2) if o.amount else 0
     class Meta: model=Budget; fields='id name amount period category start_date end_date active used remaining percentage'.split()
+
 class GoalSerializer(serializers.ModelSerializer):
     class Meta: model=Goal; fields='id name target_amount current_amount target_date'.split()
 class ReminderSerializer(serializers.ModelSerializer):
