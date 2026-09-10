@@ -14,7 +14,7 @@ WSGI_APPLICATION='moneyflow.wsgi.application'
 DATABASE_URL=os.getenv('DATABASE_URL','')
 if DATABASE_URL:
     p=urlparse(DATABASE_URL)
-    DATABASES={'default':{'ENGINE':'django.db.backends.postgresql','NAME':p.path.lstrip('/'),'USER':p.username,'PASSWORD':p.password,'HOST':p.hostname,'PORT':p.port or 5432,'CONN_MAX_AGE':60}}
+    DATABASES={'default':{'ENGINE':'django.db.backends.postgresql','NAME':p.path.lstrip('/'),'USER':p.username,'PASSWORD':p.password,'HOST':p.hostname,'PORT':p.port or 5432,'CONN_MAX_AGE':60,'OPTIONS':{'sslmode':'require'}}}
 else:
     DATABASES={'default':{'ENGINE':'django.db.backends.sqlite3','NAME':BASE_DIR/'db.sqlite3'}}
 AUTH_PASSWORD_VALIDATORS=[]
@@ -32,7 +32,9 @@ CORS_ALLOW_CREDENTIALS=True
 CSRF_TRUSTED_ORIGINS=list(dict.fromkeys([PRODUCTION_FRONTEND_ORIGIN]+[x.strip() for x in os.getenv('CSRF_TRUSTED_ORIGINS','http://localhost:5173').split(',') if x.strip()]))
 SESSION_COOKIE_SECURE=not DEBUG
 CSRF_COOKIE_SECURE=not DEBUG
-SESSION_COOKIE_SAMESITE='Lax'
-CSRF_COOKIE_SAMESITE='Lax'
+SESSION_COOKIE_SAMESITE='None' if not DEBUG else 'Lax'
+CSRF_COOKIE_SAMESITE='None' if not DEBUG else 'Lax'
+SESSION_COOKIE_HTTPONLY=True
+CSRF_COOKIE_HTTPONLY=False
 
 REST_FRAMEWORK={'DEFAULT_AUTHENTICATION_CLASSES':['rest_framework.authentication.SessionAuthentication'],'DEFAULT_PERMISSION_CLASSES':['rest_framework.permissions.IsAuthenticated']}
