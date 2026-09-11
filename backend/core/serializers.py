@@ -1,5 +1,7 @@
 from decimal import Decimal
 from datetime import time
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
 from rest_framework import serializers
 from .models import *
 from .engine import FinancialEngine
@@ -68,11 +70,15 @@ class TransactionSerializer(serializers.ModelSerializer):
 
     def validate(self,data):
         request=self.context['request']
-        data['date']=data.get('date') or request.user.date_joined.date()
-        data['exact_time']=data.get('exact_time') or time(0,0)
-        if data.get('type') in {'income','salary','money_added'} and not data.get('category'):
+        data['date']=data.get('date') or timezone.localdate()
+        data['exact_time']=data.get('exact_time') or timezone.localtime().time().replace(microsecond=0)
+        if not data.get('category'):
             data['category']='Other'
-        FinancialEngine.validate_mutation(data,request.user,self.instance)
+        try:
+            FinancialEngine.validate_mutation(data,request.user,self.instance)
+        except DjangoValidationError as exc:
+            message='; '.join(str(x) for x in exc.messages) if getattr(exc,'messages',None) else str(exc)
+            raise serializers.ValidationError({'detail':message})
         return data
 
 class BudgetSerializer(serializers.ModelSerializer):
