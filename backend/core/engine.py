@@ -10,6 +10,36 @@ class FinancialEngine:
     def active_qs(user):
         return Transaction.objects.filter(user=user,status='active')
 
+    @staticmethod
+    def snapshot(transaction):
+        """Return an audit-safe, JSON-serializable snapshot of a transaction."""
+        return {
+            'id': transaction.pk,
+            'type': transaction.type,
+            'amount': str(transaction.amount),
+            'currency': transaction.currency,
+            'date': transaction.date.isoformat() if transaction.date else None,
+            'exact_time': transaction.exact_time.isoformat() if transaction.exact_time else None,
+            'item': transaction.item,
+            'income_source': transaction.income_source,
+            'category': transaction.category,
+            'subcategory': transaction.subcategory,
+            'purpose': transaction.purpose,
+            'reason': transaction.reason,
+            'description': transaction.description,
+            'notes': transaction.notes,
+            'account_id': transaction.account_id,
+            'destination_account_id': transaction.destination_account_id,
+            'person_id': transaction.person_id,
+            'payment_method': transaction.payment_method,
+            'location': transaction.location,
+            'shop_store': transaction.shop_store,
+            'related_transaction_id': transaction.related_transaction_id,
+            'due_date': transaction.due_date.isoformat() if transaction.due_date else None,
+            'expected_return': transaction.expected_return,
+            'status': transaction.status,
+        }
+
     @classmethod
     def account_balance(cls,account):
         if not account:
